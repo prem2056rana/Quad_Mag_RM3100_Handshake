@@ -1,0 +1,7 @@
+RM3100QUAD.c:101:6:SET_COUNT	16	static
+RM3100QUAD.c:118:6:Continuous_Mode	16	static
+RM3100QUAD.c:128:6:TMRC_Mode	16	static
+RM3100QUAD.c:140:6:Mea_Result	16	static
+RM3100QUAD.c:157:6:UART_TransmitString	16	static
+RM3100QUAD.c:204:6:Comb_measurement	16	static
+RM3100QUAD.c:300:1:READ_DATA	40	static
