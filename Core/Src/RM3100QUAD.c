@@ -241,9 +241,15 @@ void Comb_measurement(int chip_select) {
 //    data1[counter++]=x_axis[chip_select];
 //    data1[counter++]=y_axis[chip_select];
 //    data1[counter++]=z_axis[chip_select];
+    HAL_UART_Transmit(&huart2,  x_axis[chip_select], sizeof( x_axis[chip_select]), 1000);
+    HAL_UART_Transmit(&huart2,  y_axis[chip_select], sizeof( y_axis[chip_select]), 1000);
+    HAL_UART_Transmit(&huart2,  z_axis[chip_select], sizeof( z_axis[chip_select]), 1000);
 //
 //    if(counter +12 > DATA_SIZE){
 ////    	 write_to_file("/epdm_re.txt", data1, counter);
+//    	if(HAL_OK == HAL_UART_Transmit(&huart2, data1, counter-1, 1000)){
+//    		HAL_UART_Transmit(&huart1, "Data sent to OBC successfully\n",sizeof("Data sent to OBC successfully\n"), 1000);
+//    	}
 //    	counter = 0;
 //    }
 
@@ -321,6 +327,8 @@ READ_DATA(){
 					                counter++;
 					            }
 			}
+				uint8_t END[]={0xff, 0xd9};
+				HAL_UART_Transmit(&huart2, END, sizeof(END), 1000);
 		}
 	}
 
