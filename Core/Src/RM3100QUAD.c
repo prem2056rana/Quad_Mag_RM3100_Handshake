@@ -48,9 +48,9 @@ float Z_axis[4];
 float Magnitude[4];
 
 
-uint8_t x_axis[4];
-uint8_t y_axis[4];
-uint8_t z_axis[4];
+uint16_t x_axis[4];
+uint16_t y_axis[4];
+uint16_t z_axis[4];
 
 uint8_t read_X0[4], read_X1[4], read_X2[4];
 uint8_t read_Y0[4], read_Y1[4], read_Y2[4];
@@ -238,9 +238,9 @@ void Comb_measurement(int chip_select) {
     y_axis[chip_select] = (int16_t)(Y_axis[chip_select] * 1000);
     z_axis[chip_select] = (int16_t)(Z_axis[chip_select] * 1000);
 
-//    data1[counter++]=x_axis[chip_select];
-//    data1[counter++]=y_axis[chip_select];
-//    data1[counter++]=z_axis[chip_select];
+//    data1[counter++] = x_axis[chip_select];
+//    data1[counter++] = y_axis[chip_select];
+//    data1[counter++] = z_axis[chip_select];
     HAL_UART_Transmit(&huart2,  x_axis[chip_select], sizeof( x_axis[chip_select]), 1000);
     HAL_UART_Transmit(&huart2,  y_axis[chip_select], sizeof( y_axis[chip_select]), 1000);
     HAL_UART_Transmit(&huart2,  z_axis[chip_select], sizeof( z_axis[chip_select]), 1000);
@@ -252,56 +252,9 @@ void Comb_measurement(int chip_select) {
 //    	}
 //    	counter = 0;
 //    }
-
-
-//    // write data in flash memory
-
-//        // Write X_axis
-//        memcpy(data_buffer, &X_axis[chip_select], sizeof(float));
-//        Page_Write_4B(&hspi2, address, data_buffer, sizeof(float));
-//        address += sizeof(float);
-//
-////        // Write Y_axis
-//        memcpy(data_buffer, &Y_axis[chip_select], sizeof(float));
-//        Page_Write_4B(&hspi2, address, data_buffer, sizeof(float));
-//        address += sizeof(float);
-//
-////        // Write Z_axis
-//        memcpy(data_buffer, &Z_axis[chip_select], sizeof(float));
-//        Page_Write_4B(&hspi2, address, data_buffer, sizeof(float));
-//        address += sizeof(float);
-
-////        // Write Magnitude
-//        memcpy(data_buffer, &Magnitude[chip_select], sizeof(float));
-//        Page_Write_4B(&hspi2, address, data_buffer, sizeof(float));
-//        address += sizeof(float);
-//
-////        // Read back data
-   //     Bulk_Read_4B(&hspi2, 0, &read_data, sizeof(read_data));
-
-         //Transmitting float data via UART
-      //  myDebug("%.2f %.2f %.2f %.2f ", X_axis[chip_select],Y_axis[chip_select],Z_axis[chip_select],Magnitude[chip_select]);
-//    	myDebug("%.2f", x_axis[chip_select]);
-//    	myDebug("%.2f", y_axis[chip_select]);
-//    	myDebug("%.2f", z_axis[chip_select]);
-//        myDebug("%.2f", Magnitude[chip_select]);
 }
 
-//void myDebug(const char *fmt, ...) {
-//    va_list args;
-//    va_start(args, fmt);
-//    char buffer[100];
-//    vsnprintf(buffer, sizeof(buffer), fmt, args);
-//    HAL_UART_Transmit(&huart1, (uint8_t*) buffer, strlen(buffer), HAL_MAX_DELAY);
-//    va_end(args);
-//}
-//
-//int bufferSize(char *buffer) {
-//    int i = 0;
-//    while (*buffer++ != '\0')
-//        i++;
-//    return i;
-//}
+
 
 READ_DATA(){
 	// Define the command sequence to compare
@@ -309,8 +262,16 @@ READ_DATA(){
 	uint8_t match = 1;  // Flag to track if the command matches
 	uint32_t startTime = HAL_GetTick();  // Record the start time
 	uint32_t maxDuration = 1 * 60 * 1000;  // Maximum duration (1 minute in milliseconds)
+    while(1){
+    	memset(OBC_CMD_RX,'\0',7);
+    	for(int i=0;i<7;i++){
+    		if(HAL_UART_Receive(&huart2, &OBC_CMD_RX[i], 1,1000) == HAL_OK){
+    			HAL_UART_Transmit(&huart1, &OBC_CMD_RX[i], 1 ,1000);
+    		}
+    	}
+	 {
 
-	if(HAL_UART_Receive(&huart2, OBC_CMD_RX, sizeof(OBC_CMD_RX),1000)==HAL_OK){
+		HAL_UART_Transmit(&huart1, OBC_CMD_RX, sizeof(OBC_CMD_RX), 1000);
 			if(HAL_UART_Transmit(&huart2, OBC_CMD_RX, sizeof(OBC_CMD_RX), 3000)==HAL_OK){
 				HAL_UART_Transmit(&huart1, "COMMAND RECEIVED\n", sizeof("COMMAND RECEIVED"), 1000);
 				for(int i = 0; i<4; i++){
@@ -329,36 +290,13 @@ READ_DATA(){
 			}
 				uint8_t END[]={0xff, 0xd9};
 				HAL_UART_Transmit(&huart2, END, sizeof(END), 1000);
+				HAL_UART_Transmit(&huart2, END, sizeof(END), 1000);
+				HAL_UART_Transmit(&huart1, "**DATA READING COMPLETED**", sizeof("**DATA READING COMPLETED**"), 1000);
+
+			break;
 		}
 	}
-
-
-//	if (HAL_UART_Receive(&huart2, OBC_CMD_RX, sizeof(OBC_CMD_RX), 1000) == HAL_OK) {
-//
-//
-//	    // Compare each byte of command and OBC_CMD_RX
-//	    for (int i = 0; i < sizeof(command); i++) {
-//	        if (command[i] != OBC_CMD_RX[i]) {
-//	            match = 0;  // Set flag to 0 if any byte doesn't match
-//	            break;      // Exit the loop early if mismatch found
-//	        }
-//	    }
-//
-//	    // If all bytes match, proceed with further actions
-//	    if (match == 1) {
-//		    HAL_UART_Transmit(&huart1, (uint8_t*)"COMMAND RECEIVED\n", 16, 1000);
-//	        while (HAL_GetTick() - startTime < maxDuration) {  // Run loop for 1 minute
-//	            for (int i = 0; i < 4; i++) {
-//	                Mea_Result(i);
-//	                Comb_measurement(i);
-//	                HAL_Delay(100);  // Delay 100ms between iterations
-//	                HAL_UART_Transmit(&huart1, "QUD_MAG IS WORKING\n", sizeof("QUDD_MAG IS WORKING"), 1000);
-//	            }
-//	        }
-//	    }
-
-
-
+  }
 
 }
 

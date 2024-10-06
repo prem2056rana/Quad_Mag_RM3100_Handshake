@@ -110,14 +110,17 @@ void HAL_UART_RxcpltCallback(UART_HandleTypeDef *huart){
 
 //HANDSHAKE WITH ON-BOARD COMPUTER
 uint8_t OBC_HANDSHAKE(){
-	memset(OBC_HANDSHAKE_RX, '\0', sizeof(OBC_HANDSHAKE_RX));
-	memset(OBC_HANDSHAKE_TX, '\0', sizeof(OBC_HANDSHAKE_TX));
 	OBC_HANDSHAKE_SUCESS = 0;
-	if(HAL_UART_Receive(&huart2, OBC_HANDSHAKE_RX, sizeof(OBC_HANDSHAKE_RX),1000)==HAL_OK){
-		if(HAL_UART_Transmit(&huart2, OBC_HANDSHAKE_RX, sizeof(OBC_HANDSHAKE_RX), 3000)==HAL_OK){
-			OBC_HANDSHAKE_SUCESS = 1;
-			HAL_UART_Transmit(&huart1, "HANDSHAKE SUCCESSFULLY\n", "HANDSHAKE SUCCESSFULLY", 1000);
-		}
+	if(HAL_UART_Receive(&huart2, OBC_HANDSHAKE_RX, sizeof(OBC_HANDSHAKE_RX),3000)==HAL_OK){
+		if(OBC_HANDSHAKE_RX[0] != '\0' && OBC_HANDSHAKE_RX[1]!='\0' && OBC_HANDSHAKE_RX[2]!='\0' && OBC_HANDSHAKE_RX[3] != '\0'){
+
+					if(HAL_UART_Transmit(&huart2, OBC_HANDSHAKE_RX, sizeof(OBC_HANDSHAKE_RX), 3000)==HAL_OK){
+						OBC_HANDSHAKE_SUCESS = 1;
+						HAL_UART_Transmit(&huart1, OBC_HANDSHAKE_RX, sizeof(OBC_HANDSHAKE_RX), 1000);
+						HAL_UART_Transmit(&huart1, "HANDSHAKE SUCCESSFULLY\n", "HANDSHAKE SUCCESSFULLY", 1000);
+						HAL_Delay(1000);
+					}
+				}
 	}
 	return OBC_HANDSHAKE_SUCESS;
 }
@@ -171,7 +174,12 @@ int main(void)
 //		HAL_UART_Transmit(&huart1, &rx, 1, 1000);
 //	}
 //}
-   while(OBC_HANDSHAKE_SUCESS ==0){
+  HAL_UART_Transmit(&huart1, "**EPDM IS STARTING**\n", sizeof("**EPDM IS STARTING**"), 1000);
+
+
+  while(OBC_HANDSHAKE_SUCESS ==0){
+	  memset(OBC_HANDSHAKE_RX, '\0', sizeof(OBC_HANDSHAKE_RX));
+	  	memset(OBC_HANDSHAKE_TX, '\0', sizeof(OBC_HANDSHAKE_TX));
   	 OBC_HANDSHAKE();
    }
 
@@ -182,6 +190,7 @@ int main(void)
   	 }
 
    }
+   HAL_Delay(1000);
 
   HAL_GPIO_WritePin(GPIOB, MSN_EN1_Pin, SET); // Set PB9 high
   HAL_GPIO_WritePin(GPIOB, MSN_EN2_Pin, SET); // Set PB8 high
@@ -191,7 +200,7 @@ int main(void)
 // Read_ID(&hspi2, GPIOB, GPIO_PIN_12, data);
  //   HAL_Delay(100);
     HAL_UART_Transmit(&huart1, "STARTING DATA READING", sizeof("STARTING DATA READING"), 1000);
-
+	  READ_DATA();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -202,7 +211,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  READ_DATA();
+
   }
   /* USER CODE END 3 */
 }
